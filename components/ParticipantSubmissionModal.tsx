@@ -8,11 +8,10 @@ import {
   CheckCircle2,
   AlertTriangle,
   FileCode2,
-  Layers,
   Database,
   Lock,
+  Mail,
   ExternalLink,
-  Presentation,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
@@ -29,7 +28,7 @@ export default function ParticipantSubmissionModal({
   onClose,
   onSuccess,
 }: ParticipantSubmissionModalProps) {
-  // Shared base fields - all empty, NO dummy prefilled text
+  // Shared base fields - clean and empty (no dummy text)
   const [teamName, setTeamName] = useState('');
   const [leadName, setLeadName] = useState('');
   const [leadEmail, setLeadEmail] = useState('');
@@ -46,12 +45,6 @@ export default function ParticipantSubmissionModal({
   const [r2IndexingSql, setR2IndexingSql] = useState('');
   const [r2TransactionsSql, setR2TransactionsSql] = useState('');
   const [r2QueryNotes, setR2QueryNotes] = useState('');
-
-  // Round 3 specific fields
-  const [r3DeckUrl, setR3DeckUrl] = useState('');
-  const [r3ScalingSummary, setR3ScalingSummary] = useState('');
-  const [r3ConcurrencyPlan, setR3ConcurrencyPlan] = useState('');
-  const [r3PresenterNames, setR3PresenterNames] = useState('');
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<any>(null);
@@ -94,7 +87,6 @@ export default function ParticipantSubmissionModal({
     setIsSubmitting(true);
 
     try {
-      // Build payload based on round number
       const payload: any = {
         roundId: round.id,
         teamName: teamName.trim(),
@@ -113,15 +105,9 @@ export default function ParticipantSubmissionModal({
         payload.updatedSchemaSql = r2SchemaSql.trim();
         payload.indexingStrategySql = r2IndexingSql.trim();
         payload.transactionsSql = r2TransactionsSql.trim();
-        payload.sqlCode = `${r2SchemaSql}\n\n-- INDEXING STRATEGY --\n${r2IndexingSql}\n\n-- TRANSACTIONS & STORED PROCEDURES --\n${r2TransactionsSql}`;
+        payload.sqlCode = `${r2SchemaSql}\n\n-- INDEXING & EXPLAIN --\n${r2IndexingSql}\n\n-- TRANSACTIONS & STORED PROCEDURES --\n${r2TransactionsSql}`;
         payload.queryNotes = r2QueryNotes.trim();
         payload.notes = r2QueryNotes.trim();
-      } else if (round.number === 3) {
-        payload.presentationDeckUrl = r3DeckUrl.trim();
-        payload.scalingArchitectureSummary = r3ScalingSummary.trim();
-        payload.concurrencyPlan = r3ConcurrencyPlan.trim();
-        payload.presenterNames = r3PresenterNames.trim();
-        payload.notes = `Deck: ${r3DeckUrl} | Presenters: ${r3PresenterNames}`;
       }
 
       const res = await fetch('/api/submissions', {
@@ -195,7 +181,11 @@ export default function ParticipantSubmissionModal({
             </strong>
             Only <span className="text-red-300 font-bold underline">ONE (1) submission</span> per team
             is allowed for this round. Once submitted, your solution is permanently locked and cannot
-            be edited or resubmitted. Verify all SQL schemas, queries, and links before submitting.
+            be edited or resubmitted.
+            <div className="mt-1 text-muted-foreground text-[11px]">
+              Submissions and Google Drive links are recorded in database and directed to{' '}
+              <span className="text-foreground font-semibold">azhanadeem999@gmail.com</span>.
+            </div>
           </div>
         </div>
 
@@ -230,16 +220,34 @@ export default function ParticipantSubmissionModal({
               <CheckCircle2 className="w-10 h-10" />
             </div>
             <h4 className="font-display text-2xl font-bold text-foreground uppercase">
-              Submission Received &amp; Stored Successfully!
+              Submission Successfully Recorded!
             </h4>
             <p className="font-mono text-xs text-muted-foreground max-w-md mx-auto">
-              {submissionResult.message}
+              Your files and Google Drive links have been stored in the database and directed to{' '}
+              <strong className="text-white">azhanadeem999@gmail.com</strong>.
             </p>
-            <div className="border border-emerald-500/40 bg-emerald-950/20 p-4 text-left font-mono text-xs text-emerald-200">
+            <div className="border border-emerald-500/40 bg-emerald-950/20 p-4 text-left font-mono text-xs text-emerald-200 space-y-1">
               <div>STATUS: Locked (Single submission recorded)</div>
               <div>SUBMISSION ID: {submissionResult.submissionId}</div>
-              <div>TIMESTAMP: {new Date().toLocaleString()}</div>
+              <div>ORGANIZER DIRECT: azhanadeem999@gmail.com</div>
+              <div className="truncate">GOOGLE DRIVE LINK: {submissionResult.driveLink}</div>
             </div>
+
+            {/* Direct Mailto Backup Button */}
+            {submissionResult.directMailtoUrl && (
+              <div className="pt-2">
+                <a
+                  href={submissionResult.directMailtoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 border border-cyan-500/50 bg-cyan-950/30 text-cyan-300 hover:bg-cyan-950/50 px-4 py-2 font-mono text-xs font-bold hud-cut-sm transition-all"
+                >
+                  <Mail className="w-4 h-4" />
+                  <span>Send Confirmation Email Copy to azhanadeem999@gmail.com</span>
+                </a>
+              </div>
+            )}
+
             <button
               onClick={onClose}
               className="mt-6 bg-primary hover:bg-primary-dark text-white px-6 py-2.5 font-mono text-xs font-bold tracking-widest hud-cut-sm"
@@ -248,7 +256,7 @@ export default function ParticipantSubmissionModal({
             </button>
           </div>
         ) : (
-          /* Submission Form - Custom tailored for Round 1, Round 2, or Round 3 */
+          /* Submission Form */
           <form onSubmit={handleSubmit} className="mt-5 space-y-4">
             {/* Common Team Identification Fields (clean, no dummy data) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -309,35 +317,38 @@ export default function ParticipantSubmissionModal({
               </div>
             </div>
 
-            {/* ROUND 1 FORM: The Garage Days (Beginner) */}
+            {/* ROUND 1 FORM: Initial Design Submission */}
             {round.number === 1 && (
               <div className="space-y-4 pt-2 border-t border-primary/20">
                 <div className="font-mono text-xs font-bold text-primary uppercase flex items-center gap-2">
                   <Database className="w-4 h-4 text-primary" />
-                  ROUND 01 SPECIFIC REQUIREMENTS (RELATIONAL GENESIS &amp; 3NF)
+                  ROUND 01 REQUIREMENTS (ERD, 2NF/3NF &amp; CORE SQL)
                 </div>
 
                 <div>
-                  <label className="block font-mono text-[11px] text-muted-foreground uppercase mb-1">
-                    ERD Diagram Public URL * (dbdocs.io / drawSQL / Figma / Google Drive)
+                  <label className="block font-mono text-[11px] text-amber-300 font-bold uppercase mb-1">
+                    Google Drive Folder / ERD Diagram Public URL * (Directed to azhanadeem999@gmail.com)
                   </label>
                   <input
                     type="url"
                     required
                     value={r1ErdLink}
                     onChange={(e) => setR1ErdLink(e.target.value)}
-                    placeholder="https://dbdocs.io/your-team/r1-erd or https://drawsql.app/..."
-                    className="w-full border border-primary/30 bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-primary outline-none"
+                    placeholder="https://drive.google.com/drive/folders/... (Set sharing to 'Anyone with link can view')"
+                    className="w-full border border-amber-500/50 bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-amber-400 outline-none"
                   />
+                  <span className="font-mono text-[10px] text-muted-foreground mt-0.5 block">
+                    Important: Ensure your Google Drive link or dbdocs/drawSQL link is publicly viewable.
+                  </span>
                 </div>
 
                 <div>
                   <div className="flex items-center justify-between mb-1">
                     <label className="block font-mono text-[11px] text-primary font-bold uppercase">
-                      Core Relational SQL Schema &amp; DDL Statements *
+                      Core SQL Schema &amp; DDL Statements *
                     </label>
                     <span className="font-mono text-[10px] text-muted-foreground">
-                      CREATE TABLE, Primary &amp; Foreign Keys, Constraints
+                      CREATE TABLE, Primary &amp; Foreign Keys, 2NF/3NF
                     </span>
                   </div>
                   <textarea
@@ -347,81 +358,84 @@ export default function ParticipantSubmissionModal({
                     onChange={(e) => setR1SqlCode(e.target.value)}
                     placeholder="-- Paste your clean SQL DDL script here:
 CREATE TABLE customers ( ... );
-CREATE TABLE restaurants ( ... );
-CREATE TABLE menu_items ( ... );
-CREATE TABLE orders ( ... );"
+CREATE TABLE dishes ( ... );
+CREATE TABLE orders ( ... );
+CREATE TABLE riders ( ... );"
                     className="w-full border border-primary/30 bg-[#090404] p-3 font-mono text-xs text-foreground/90 focus:border-primary outline-none leading-relaxed"
                   />
                 </div>
 
                 <div>
                   <label className="block font-mono text-[11px] text-muted-foreground uppercase mb-1">
-                    Normalization Justification (1NF, 2NF, 3NF Explanation)
+                    Normalization &amp; Relationship Notes (2NF, 3NF &amp; 1:1, 1:M, M:M)
                   </label>
                   <textarea
                     rows={2}
                     value={r1NormalizationNotes}
                     onChange={(e) => setR1NormalizationNotes(e.target.value)}
-                    placeholder="Briefly explain how you eliminated partial and transitive functional dependencies..."
+                    placeholder="Briefly explain how your design normalizes the garage operation..."
                     className="w-full border border-primary/30 bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-primary outline-none"
                   />
                 </div>
               </div>
             )}
 
-            {/* ROUND 2 FORM: The Expansion (Intermediate) */}
+            {/* ROUND 2 FORM: Optimization & Queries */}
             {round.number === 2 && (
               <div className="space-y-4 pt-2 border-t border-primary/20">
                 <div className="font-mono text-xs font-bold text-accent uppercase flex items-center gap-2">
                   <FileCode2 className="w-4 h-4 text-accent" />
-                  ROUND 02 SPECIFIC REQUIREMENTS (M:M, INDEXING &amp; TRANSACTIONS)
+                  ROUND 02 REQUIREMENTS (OPTIMIZATION, INDEXING, SHARDING &amp; TRANSACTIONS)
                 </div>
 
                 <div>
-                  <label className="block font-mono text-[11px] text-muted-foreground uppercase mb-1">
-                    Updated Multi-City ERD Diagram URL *
+                  <label className="block font-mono text-[11px] text-amber-300 font-bold uppercase mb-1">
+                    Google Drive Folder / Solution Documents URL * (Directed to azhanadeem999@gmail.com)
                   </label>
                   <input
                     type="url"
                     required
                     value={r2ErdLink}
                     onChange={(e) => setR2ErdLink(e.target.value)}
-                    placeholder="https://dbdocs.io/your-team/r2-expansion-erd"
-                    className="w-full border border-primary/30 bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-primary outline-none"
+                    placeholder="https://drive.google.com/drive/folders/... (Google Drive link with solution files)"
+                    className="w-full border border-amber-500/50 bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-amber-400 outline-none"
                   />
+                  <span className="font-mono text-[10px] text-muted-foreground mt-0.5 block">
+                    Ensure link permissions are set so judges can view your files without request access.
+                  </span>
                 </div>
 
                 <div>
                   <label className="block font-mono text-[11px] text-primary font-bold uppercase mb-1">
-                    M:M Relations &amp; Multi-City Schema SQL * (Riders, Ratings, Payment Gateways)
+                    Scaled Schema SQL &amp; Views * (1M Users, 5 Cities, 50k Orders/Day)
                   </label>
                   <textarea
                     rows={5}
                     required
                     value={r2SchemaSql}
                     onChange={(e) => setR2SchemaSql(e.target.value)}
-                    placeholder="-- Paste your M:M Rider dispatch, ratings, and multi-channel payment tables..."
+                    placeholder="-- Paste your scaled database schema, views, and BCNF/4NF tables..."
                     className="w-full border border-primary/30 bg-[#090404] p-3 font-mono text-xs text-foreground/90 focus:border-primary outline-none"
                   />
                 </div>
 
                 <div>
                   <label className="block font-mono text-[11px] text-primary font-bold uppercase mb-1">
-                    Indexing Strategy &amp; Benchmark Queries * (CREATE INDEX &amp; Joins)
+                    Query Optimization &amp; Indexing Strategy * (EXPLAIN, B-Tree, Rewritten Queries)
                   </label>
                   <textarea
-                    rows={3}
+                    rows={4}
                     required
                     value={r2IndexingSql}
                     onChange={(e) => setR2IndexingSql(e.target.value)}
-                    placeholder="-- Paste your composite / B-Tree index definitions and fast lookup queries..."
+                    placeholder="-- Paste your indexing statements (CREATE INDEX) and query optimizations..."
                     className="w-full border border-primary/30 bg-[#090404] p-3 font-mono text-xs text-foreground/90 focus:border-primary outline-none"
                   />
                 </div>
 
                 <div>
                   <label className="block font-mono text-[11px] text-primary font-bold uppercase mb-1">
-                    ACID Transaction &amp; Stored Procedure SQL * (Order Dispatch &amp; Payments)
+                    ACID Transactions &amp; Stored Procedures * (Concurrency &amp; Locking for Ramadan 10x Spikes)
                   </label>
                   <textarea
                     rows={4}
@@ -432,69 +446,16 @@ CREATE TABLE orders ( ... );"
                     className="w-full border border-primary/30 bg-[#090404] p-3 font-mono text-xs text-foreground/90 focus:border-primary outline-none"
                   />
                 </div>
-              </div>
-            )}
-
-            {/* ROUND 3 FORM: The Platform (Advanced / On-Campus Stage Defense) */}
-            {round.number === 3 && (
-              <div className="space-y-4 pt-2 border-t border-primary/20">
-                <div className="font-mono text-xs font-bold text-amber-400 uppercase flex items-center gap-2">
-                  <Presentation className="w-4 h-4 text-amber-400" />
-                  ROUND 03 STAGE DEFENSE REGISTRATION (ON-CAMPUS @ UBIT)
-                </div>
-
-                <div>
-                  <label className="block font-mono text-[11px] text-amber-300 font-bold uppercase mb-1">
-                    Presentation Slide Deck Link * (Google Slides / Canva / PDF Drive URL)
-                  </label>
-                  <input
-                    type="url"
-                    required
-                    value={r3DeckUrl}
-                    onChange={(e) => setR3DeckUrl(e.target.value)}
-                    placeholder="https://docs.google.com/presentation/d/... or Canva share link"
-                    className="w-full border border-amber-500/40 bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-amber-400 outline-none"
-                  />
-                </div>
 
                 <div>
                   <label className="block font-mono text-[11px] text-muted-foreground uppercase mb-1">
-                    Platform Scaling Blueprint Summary * (Sharding, Caching &amp; SQL vs NoSQL)
+                    Architecture Decisions Notes (Partitioning, Sharding, NoSQL vs SQL)
                   </label>
                   <textarea
-                    rows={4}
-                    required
-                    value={r3ScalingSummary}
-                    onChange={(e) => setR3ScalingSummary(e.target.value)}
-                    placeholder="Summarize your sharding keys, Redis caching tier, read-replicas, and why specific data is kept in SQL vs NoSQL for 1M users..."
-                    className="w-full border border-primary/30 bg-[#090404] p-3 font-mono text-xs text-foreground/90 focus:border-primary outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-mono text-[11px] text-muted-foreground uppercase mb-1">
-                    Ramadan Peak Concurrency &amp; Disaster Recovery Plan *
-                  </label>
-                  <textarea
-                    rows={3}
-                    required
-                    value={r3ConcurrencyPlan}
-                    onChange={(e) => setR3ConcurrencyPlan(e.target.value)}
-                    placeholder="How will your architecture handle 10,000 orders/sec during Sehri/Iftar rushes without database lockups or double charges?"
-                    className="w-full border border-primary/30 bg-[#090404] p-3 font-mono text-xs text-foreground/90 focus:border-primary outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="block font-mono text-[11px] text-muted-foreground uppercase mb-1">
-                    Designated Presenter Name(s) for On-Stage Jury Defense *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={r3PresenterNames}
-                    onChange={(e) => setR3PresenterNames(e.target.value)}
-                    placeholder="Names of team members who will present on stage at UBIT"
+                    rows={2}
+                    value={r2QueryNotes}
+                    onChange={(e) => setR2QueryNotes(e.target.value)}
+                    placeholder="Explain trade-offs, caching (Redis), replication, or CAP theorem considerations..."
                     className="w-full border border-primary/30 bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-primary outline-none"
                   />
                 </div>
@@ -511,7 +472,7 @@ CREATE TABLE orders ( ... );"
             {/* Form Action Controls */}
             <div className="pt-3 flex items-center justify-between border-t border-primary/20">
               <span className="font-mono text-[10px] text-muted-foreground">
-                SUBMISSION IS FINAL &amp; LOCKED ONCE SENT
+                SUBMISSION DIRECTED TO: azhanadeem999@gmail.com
               </span>
 
               <div className="flex gap-3">
@@ -530,7 +491,7 @@ CREATE TABLE orders ( ... );"
                   <Send className="w-3.5 h-3.5" />
                   <span>
                     {isSubmitting
-                      ? 'RECORDING SUBMISSION...'
+                      ? 'DIRECTING TO ORGANIZER...'
                       : `CONFIRM & SUBMIT ROUND 0${round.number}`}
                   </span>
                 </button>

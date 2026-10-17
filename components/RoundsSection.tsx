@@ -6,6 +6,7 @@ import { RoundInfo } from '@/lib/types';
 import { ROUNDS_DATA } from '@/lib/data';
 import JudgePdfUploadModal from './JudgePdfUploadModal';
 import ParticipantSubmissionModal from './ParticipantSubmissionModal';
+import JudgeSubmissionsViewerModal from './JudgeSubmissionsViewerModal';
 import {
   FileText,
   Upload,
@@ -13,15 +14,17 @@ import {
   ShieldCheck,
   Code2,
   Lock,
+  Eye,
 } from 'lucide-react';
 
 export default function RoundsSection() {
-  const { role } = useRole();
+  const { isJudgeLoggedIn, setIsLoginModalOpen } = useRole();
   const [rounds, setRounds] = useState<RoundInfo[]>(ROUNDS_DATA);
 
   // Modal states
   const [activeJudgeModalRound, setActiveJudgeModalRound] = useState<RoundInfo | null>(null);
   const [activeParticipantModalRound, setActiveParticipantModalRound] = useState<RoundInfo | null>(null);
+  const [isSubmissionsViewerOpen, setIsSubmissionsViewerOpen] = useState(false);
 
   const handlePdfUploadSuccess = (updatedRound: RoundInfo) => {
     setRounds((prev) =>
@@ -32,48 +35,48 @@ export default function RoundsSection() {
   return (
     <section id="rounds" className="relative py-24 bg-background border-t border-primary/20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Section Title & Role Banner (Subtext removed as requested) */}
+        {/* Section Title & Role Banner (No subtext as requested) */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
             <div className="flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-primary uppercase">
               <span className="h-1.5 w-1.5 rounded-full bg-primary pulse-dot" />
-              THE 3-STAGE EVOLUTION
+              THE 2-STAGE DATABASE DESIGN CHALLENGE
             </div>
             <h2 className="mt-3 font-display text-3xl font-bold tracking-tight uppercase sm:text-5xl">
               Rounds Description &amp; Problem Sets
             </h2>
           </div>
 
-          {/* Active UX Mode indicator */}
-          <div className="flex items-center gap-3 p-3 border border-primary/30 bg-card/60 hud-cut-sm">
-            <div className="font-mono text-xs">
-              <span className="text-muted-foreground">ACTIVE PERSPECTIVE: </span>
-              <strong className={role === 'judge' ? 'text-amber-400' : 'text-primary'}>
-                {role === 'judge' ? 'JUDGE UX' : 'PARTICIPANT UX'}
-              </strong>
-            </div>
-            {role === 'judge' ? (
-              <span className="font-mono text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5">
-                PDF Upload Enabled
-              </span>
+          {/* Active Mode indicator / Quick Judge Portal */}
+          <div className="flex items-center gap-3">
+            {isJudgeLoggedIn ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setIsSubmissionsViewerOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 font-mono text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50 hover:bg-amber-500/30 transition-all hud-cut-sm shadow-[0_0_15px_rgba(245,158,11,0.3)]"
+                >
+                  <Eye className="w-3.5 h-3.5 text-amber-400" />
+                  <span>VIEW SUBMISSIONS &amp; DRIVE LINKS</span>
+                </button>
+              </div>
             ) : (
-              <span className="font-mono text-[10px] bg-primary/20 text-primary border border-primary/40 px-2 py-0.5">
-                Download &amp; Submit Mode
-              </span>
+              <button
+                onClick={() => setIsLoginModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 font-mono text-xs text-muted-foreground border border-primary/30 hover:border-amber-500/60 hover:text-amber-300 hud-cut-sm"
+              >
+                <Lock className="w-3.5 h-3.5 text-primary" />
+                <span>JUDGE ACCESS (RESTRICTED)</span>
+              </button>
             )}
           </div>
         </div>
 
-        {/* 3 Rounds List */}
+        {/* 2 Rounds List (Only Round 1 and Round 2) */}
         <div className="mt-14 space-y-12">
           {rounds.map((round) => (
             <div
               key={round.id}
-              className={`relative border bg-[#110808] p-6 sm:p-8 hud-cut-lg transition-all ${
-                round.id === 'round-3'
-                  ? 'border-amber-500/40 shadow-[0_0_25px_rgba(245,158,11,0.12)]'
-                  : 'border-primary/35 shadow-[0_0_25px_rgba(239,59,59,0.12)]'
-              }`}
+              className="relative border bg-[#110808] p-6 sm:p-8 hud-cut-lg transition-all border-primary/35 shadow-[0_0_25px_rgba(239,59,59,0.12)]"
             >
               <span className="pointer-events-none absolute top-0 right-0 h-3 w-3 border-t-2 border-r-2 border-primary" />
               <span className="pointer-events-none absolute bottom-0 left-0 h-3 w-3 border-b-2 border-l-2 border-primary" />
@@ -101,18 +104,10 @@ export default function RoundsSection() {
 
                 <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
                   <span className="border border-primary/30 bg-background/50 px-3 py-1 text-foreground/80">
-                    DATE: {round.date}
+                    {round.date}
                   </span>
-                  <span
-                    className={`border px-3 py-1 font-bold ${
-                      round.requiresCodeStorage
-                        ? 'border-cyan-500/40 text-cyan-400 bg-cyan-950/20'
-                        : 'border-amber-500/40 text-amber-300 bg-amber-950/20'
-                    }`}
-                  >
-                    {round.requiresCodeStorage
-                      ? 'ONLINE SUBMISSION ON PORTAL'
-                      : 'DAY 3 ON-CAMPUS PITCH @ UBIT'}
+                  <span className="border px-3 py-1 font-bold border-cyan-500/40 text-cyan-400 bg-cyan-950/20">
+                    ONLINE ON PORTAL · 3 HOURS
                   </span>
                 </div>
               </div>
@@ -141,7 +136,7 @@ export default function RoundsSection() {
 
                   <div>
                     <h4 className="font-mono text-xs font-bold tracking-widest text-muted-foreground uppercase mb-2">
-                      KEY TESTED COMPETENCIES
+                      TOPICS TO PREPARE FOR ROUND 0{round.number}
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {round.skills.map((skill, i) => (
@@ -167,7 +162,7 @@ export default function RoundsSection() {
                     </div>
                     <div className="border border-primary/20 bg-background/40 p-2.5">
                       <div className="font-mono text-[10px] text-muted-foreground uppercase">
-                        RESTAURANTS / HUBS
+                        RESTAURANTS / DISHES
                       </div>
                       <div className="font-display text-base font-bold text-foreground">
                         {round.scaleStats.restaurants}
@@ -176,7 +171,7 @@ export default function RoundsSection() {
                     {round.scaleStats.riders && (
                       <div className="border border-primary/20 bg-background/40 p-2.5 col-span-2 sm:col-span-1">
                         <div className="font-mono text-[10px] text-muted-foreground uppercase">
-                          DISPATCH FLEET
+                          DISPATCH RIDERS
                         </div>
                         <div className="font-display text-base font-bold text-foreground">
                           {round.scaleStats.riders}
@@ -229,9 +224,9 @@ export default function RoundsSection() {
                       </div>
                     )}
 
-                    {/* Specific Action: PDF Upload option ONLY FOR THE JUDGE */}
+                    {/* PDF Upload option restricted strictly to Judge through login */}
                     <div className="mt-6 pt-4 border-t border-primary/20">
-                      {role === 'judge' ? (
+                      {isJudgeLoggedIn ? (
                         <div className="space-y-2">
                           <div className="flex items-center gap-1.5 font-mono text-[11px] text-amber-400 font-bold uppercase">
                             <ShieldCheck className="w-4 h-4" />
@@ -246,9 +241,6 @@ export default function RoundsSection() {
                               {round.judgePdf ? 'REPLACE ROUND PDF BRIEF' : 'UPLOAD ROUND PDF BRIEF'}
                             </span>
                           </button>
-                          <p className="font-mono text-[10px] text-muted-foreground text-center">
-                            Only verified Judges can upload or modify official round briefs.
-                          </p>
                         </div>
                       ) : (
                         <div className="space-y-2">
@@ -271,14 +263,14 @@ export default function RoundsSection() {
                           )}
                           <div className="flex items-center justify-center gap-1 font-mono text-[10px] text-muted-foreground">
                             <Lock className="w-3 h-3 text-primary" />
-                            <span>PDF upload option is restricted to verified Judges.</span>
+                            <span>PDF upload restricted to Judge (Azha Nadeem).</span>
                           </div>
                         </div>
                       )}
                     </div>
                   </div>
 
-                  {/* Participant Submission Action */}
+                  {/* Participant Submission Action (Only 2 submission options) */}
                   <div className="mt-6 pt-4 border-t border-primary/20">
                     <button
                       onClick={() => setActiveParticipantModalRound(round)}
@@ -286,9 +278,9 @@ export default function RoundsSection() {
                     >
                       <Code2 className="w-4 h-4" />
                       <span>
-                        {round.number === 1 && 'SUBMIT ROUND 01 (RELATIONAL DDL & ERD)'}
-                        {round.number === 2 && 'SUBMIT ROUND 02 (TRANSACTIONS & INDEXING)'}
-                        {round.number === 3 && 'SUBMIT ROUND 03 (ON-CAMPUS DECK & ARCHITECTURE)'}
+                        {round.number === 1
+                          ? 'SUBMIT ROUND 01 (INITIAL DESIGN SCHEMA)'
+                          : 'SUBMIT ROUND 02 (OPTIMIZATION & QUERIES)'}
                       </span>
                     </button>
                   </div>
@@ -312,6 +304,11 @@ export default function RoundsSection() {
         isOpen={Boolean(activeParticipantModalRound)}
         onClose={() => setActiveParticipantModalRound(null)}
         onSuccess={() => {}}
+      />
+
+      <JudgeSubmissionsViewerModal
+        isOpen={isSubmissionsViewerOpen}
+        onClose={() => setIsSubmissionsViewerOpen(false)}
       />
     </section>
   );

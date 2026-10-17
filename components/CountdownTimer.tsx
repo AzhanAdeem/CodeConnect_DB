@@ -4,14 +4,14 @@ import React, { useState, useEffect } from 'react';
 
 export default function CountdownTimer() {
   const [timeLeft, setTimeLeft] = useState({
-    days: 13,
-    hours: 0,
-    minutes: 48,
-    seconds: 20,
+    days: 4,
+    hours: 22,
+    minutes: 7,
+    seconds: 15,
   });
 
   useEffect(() => {
-    // Target: 22 October 2026, 09:00:00 PKT
+    // Final Round 3 Presentation target: 22 October 2026, 09:00:00 PKT
     const target = new Date('2026-10-22T09:00:00+05:00').getTime();
 
     const interval = setInterval(() => {
@@ -50,13 +50,13 @@ export default function CountdownTimer() {
       <div className="pointer-events-none absolute inset-x-3 top-2.5 flex items-center justify-between font-mono text-[10px] tracking-[0.2em] text-primary/80 uppercase sm:inset-x-6">
         <span className="flex items-center gap-1.5">
           <span className="h-1.5 w-1.5 rounded-full bg-primary pulse-dot"></span>
-          COUNTDOWN_TIMER_INIT
+          COMPETITION_TIMER_INIT
         </span>
         <span>UBIT_KARACHI_MAIN</span>
       </div>
 
       <p className="mb-4 text-center font-mono text-[11px] tracking-[0.25em] text-primary uppercase">
-        — CODE//CONNECT&#39;26 · THE ULTIMATE DATABASE CHALLENGE —
+        — CODE//CONNECT&#39;26 · DATABASE DESIGN CHALLENGE —
       </p>
 
       {/* 4 Block Countdown */}
@@ -87,8 +87,8 @@ export default function CountdownTimer() {
       </div>
 
       <div className="mt-3 flex items-center justify-between font-mono text-[10px] tracking-[0.18em] text-muted-foreground uppercase px-1">
-        <span>KICKOFF // 22 OCT 2026</span>
-        <span className="text-primary font-bold">DEADLINE: 18 OCT 2026</span>
+        <span>ONLINE ROUNDS // 17–18 OCT 2026</span>
+        <span className="text-primary font-bold">FINAL PRESENTATION: 22 OCT 2026</span>
       </div>
     </div>
   );

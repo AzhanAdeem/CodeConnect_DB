@@ -2,11 +2,11 @@
 
 import React, { useState } from 'react';
 import { SCHEDULE_DAYS } from '@/lib/data';
-import { Calendar, Clock, MapPin, Globe, CheckCircle2, ChevronRight, Laptop } from 'lucide-react';
+import { Calendar, Clock, Globe, ChevronRight, Laptop, Sparkles } from 'lucide-react';
 
 export default function ScheduleSection() {
   const [activeDayIdx, setActiveDayIdx] = useState(0);
-  const currentDay = SCHEDULE_DAYS[activeDayIdx];
+  const currentDay = SCHEDULE_DAYS[activeDayIdx] || SCHEDULE_DAYS[0];
 
   return (
     <section id="schedule" className="relative py-24 bg-background border-t border-primary/20">
@@ -16,24 +16,24 @@ export default function ScheduleSection() {
           <div>
             <div className="flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-primary uppercase">
               <span className="h-1.5 w-1.5 rounded-full bg-primary pulse-dot" />
-              TIMELINE &amp; LOGISTICS
+              TIMELINE &amp; WORKING WINDOWS
             </div>
             <h2 className="mt-3 font-display text-3xl font-bold tracking-tight uppercase sm:text-5xl">
-              3-Day Hackathon Schedule
+              Online Hackathon Schedule
             </h2>
             <p className="mt-3 text-base text-muted-foreground max-w-xl">
-              Two days online with cloud database code submissions, culminating in an intense on-campus finale at UBIT.
+              Two days online with 3 hours of working time per round. Participants submit their work online on the portal.
             </p>
           </div>
 
           <div className="flex items-center gap-2 font-mono text-xs text-primary bg-primary/10 border border-primary/30 px-3.5 py-2 hud-cut-sm">
             <Calendar className="w-4 h-4" />
-            <span>22 — 24 OCTOBER 2026</span>
+            <span>17 — 18 OCTOBER 2026 (ONLINE)</span>
           </div>
         </div>
 
-        {/* Day Selector Tabs */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Day Selector Tabs (2 Days Online) */}
+        <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4">
           {SCHEDULE_DAYS.map((day, idx) => {
             const isSelected = activeDayIdx === idx;
             return (
@@ -51,20 +51,14 @@ export default function ScheduleSection() {
                   <span className="font-mono text-xs font-bold text-primary">
                     DAY 0{day.dayNumber}
                   </span>
-                  <span
-                    className={`font-mono text-[10px] px-2 py-0.5 border ${
-                      day.mode === 'Online'
-                        ? 'border-cyan-500/40 text-cyan-400 bg-cyan-950/30'
-                        : 'border-amber-500/40 text-amber-300 bg-amber-950/30'
-                    }`}
-                  >
-                    {day.mode.toUpperCase()}
+                  <span className="font-mono text-[10px] px-2 py-0.5 border border-cyan-500/40 text-cyan-400 bg-cyan-950/30">
+                    {day.mode.toUpperCase()} · 3 HOURS
                   </span>
                 </div>
                 <h3 className="mt-2 font-display text-lg font-bold text-foreground uppercase">
                   {day.roundAssociated.split(':')[1] || day.roundAssociated}
                 </h3>
-                <p className="mt-1 font-mono text-xs text-muted-foreground">{day.date}</p>
+                <p className="mt-1 font-mono text-xs text-muted-foreground">{day.date} (9:00 AM – 12:00 PM)</p>
               </button>
             );
           })}
@@ -83,17 +77,11 @@ export default function ScheduleSection() {
             </div>
             <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
               <span className="flex items-center gap-1.5 border border-primary/30 bg-background/60 px-3 py-1.5 text-foreground/90">
-                {currentDay.mode === 'Online' ? (
-                  <Globe className="w-3.5 h-3.5 text-cyan-400" />
-                ) : (
-                  <MapPin className="w-3.5 h-3.5 text-amber-400" />
-                )}
+                <Globe className="w-3.5 h-3.5 text-cyan-400" />
                 <span>VENUE: {currentDay.venue}</span>
               </span>
               <span className="border border-primary/30 bg-background/60 px-3 py-1.5 text-primary">
-                {currentDay.mode === 'Online'
-                  ? 'CODE DB STORAGE: ACTIVE'
-                  : 'ON-SITE WHITEBOARD DEFENSE'}
+                TOTAL WORKING TIME: 3 HOURS
               </span>
             </div>
           </div>
@@ -103,7 +91,7 @@ export default function ScheduleSection() {
             <div>
               <h4 className="font-mono text-xs font-bold tracking-widest text-primary uppercase mb-4 flex items-center gap-2">
                 <Clock className="w-4 h-4 text-primary" />
-                TIMELINE OF ACTIVITIES
+                ROUND AGENDA &amp; SCHEDULE
               </h4>
               <div className="space-y-4">
                 {currentDay.agenda.map((slot, idx) => (
@@ -111,7 +99,7 @@ export default function ScheduleSection() {
                     key={idx}
                     className="flex items-start gap-4 p-3 border border-primary/20 bg-background/40 hover:border-primary/50 transition-colors"
                   >
-                    <span className="font-mono text-xs text-primary font-bold whitespace-nowrap min-w-[130px] pt-0.5">
+                    <span className="font-mono text-xs text-primary font-bold whitespace-nowrap min-w-[140px] pt-0.5">
                       {slot.time}
                     </span>
                     <span className="text-sm text-foreground/90 font-medium">
@@ -142,14 +130,26 @@ export default function ScheduleSection() {
                 <div className="font-mono text-[11px] text-primary flex items-center gap-2">
                   <Laptop className="w-3.5 h-3.5" />
                   <span>
-                    {currentDay.mode === 'Online'
-                      ? 'Submit SQL & ERD schema files directly via Participant portal below'
-                      : 'Bring 100% charged laptop & student ID for UBIT campus entry'}
+                    Submit SQL &amp; ERD drive links directly on the portal before the 12:00 PM cutoff.
                   </span>
                 </div>
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Note on Day 3 presentation */}
+        <div className="mt-6 border border-primary/20 bg-[#120808]/70 p-4 font-mono text-xs text-muted-foreground flex items-center justify-between hud-cut-sm">
+          <span className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-primary" />
+            <span>
+              Final Round 3: Pitch &amp; Presentation will take place on <strong>22nd Oct, Thursday (9:00 AM – 11:00 AM)</strong>.
+              Detailed on-campus schedule will be published following Round 1 &amp; 2 evaluations.
+            </span>
+          </span>
+          <span className="border border-primary/30 px-2 py-0.5 text-primary text-[10px]">
+            DAY 3 COMING SOON
+          </span>
         </div>
       </div>
     </section>

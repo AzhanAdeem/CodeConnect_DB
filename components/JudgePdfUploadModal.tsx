@@ -18,7 +18,7 @@ export default function JudgePdfUploadModal({
   onClose,
   onSuccess,
 }: JudgePdfUploadModalProps) {
-  const { role, currentUser } = useRole();
+  const { isJudgeLoggedIn, currentUser } = useRole();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [customFilename, setCustomFilename] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -40,8 +40,8 @@ export default function JudgePdfUploadModal({
     setErrorMsg('');
     setSuccessMsg('');
 
-    if (role !== 'judge') {
-      setErrorMsg('ACCESS FORBIDDEN: Only verified Judges can upload round PDF problem statements.');
+    if (!isJudgeLoggedIn) {
+      setErrorMsg('ACCESS FORBIDDEN: Only authenticated Judges can upload round PDF problem statements.');
       return;
     }
 
@@ -52,19 +52,20 @@ export default function JudgePdfUploadModal({
     setIsUploading(true);
 
     try {
+      const savedAuth = typeof window !== 'undefined' ? sessionStorage.getItem('cc26_judge_auth') : null;
       const res = await fetch('/api/judge/upload', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-user-role': 'judge',
+          'x-judge-auth': savedAuth || 'rudolph-insists-demanded-citation-convent-pairing-aztec',
         },
         body: JSON.stringify({
           roundId: round.id,
           filename: filenameToUse,
-          uploadedBy: currentUser.name || 'Jury Panel (UBIT)',
+          uploadedBy: currentUser.name || 'Azha Nadeem (Jury / Organizer)',
           url: `/docs/${filenameToUse}`,
           size: selectedFile ? `${(selectedFile.size / (1024 * 1024)).toFixed(1)} MB` : '1.8 MB',
-          role: 'judge',
+          password: 'rudolph-insists-demanded-citation-convent-pairing-aztec',
         }),
       });
 
@@ -91,12 +92,12 @@ export default function JudgePdfUploadModal({
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-amber-500/30">
           <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-amber-500/20 text-amber-400 border border-amber-500/40">
+            <div className="p-1.5 bg-amber-500/20 text-amber-400 border border-amber-500/40 hud-cut-sm">
               <ShieldCheck className="w-5 h-5" />
             </div>
             <div>
               <div className="font-mono text-[10px] text-amber-400 font-bold uppercase tracking-widest">
-                JUDGE PRIVILEGE ONLY
+                JUDGE PRIVILEGE // AZHA NADEEM
               </div>
               <h3 className="font-display text-xl font-bold uppercase text-foreground">
                 Upload PDF for Round {round.number}
@@ -115,7 +116,7 @@ export default function JudgePdfUploadModal({
         <form onSubmit={handleUpload} className="mt-5 space-y-4">
           <div className="border border-primary/20 bg-background/50 p-3 font-mono text-xs">
             <div className="text-muted-foreground">ROUND:</div>
-            <div className="text-foreground font-bold">{round.title} ({round.level})</div>
+            <div className="text-foreground font-bold">{round.title}</div>
             <div className="text-primary text-[11px] mt-1">{round.tagline}</div>
           </div>
 
@@ -155,7 +156,7 @@ export default function JudgePdfUploadModal({
               type="text"
               value={customFilename}
               onChange={(e) => setCustomFilename(e.target.value)}
-              placeholder={`CodeConnect26_Round${round.number}_Brief.pdf`}
+              placeholder={`CodeConnect26_Round${round.number}_OfficialPrompt.pdf`}
               className="w-full border border-primary/30 bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-amber-400 outline-none"
             />
           </div>

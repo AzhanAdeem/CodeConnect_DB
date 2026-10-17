@@ -5,6 +5,7 @@ import { ROUNDS_DATA } from './data';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const SUBMISSIONS_FILE = path.join(DATA_DIR, 'submissions.json');
+const SUBMISSIONS_LOG_FILE = path.join(DATA_DIR, 'submissions.txt');
 
 function ensureDataDir() {
   if (!fs.existsSync(DATA_DIR)) {
@@ -31,6 +32,33 @@ function saveSubmissionsToFile(submissions: ParticipantSubmission[]) {
     fs.writeFileSync(SUBMISSIONS_FILE, JSON.stringify(submissions, null, 2), 'utf-8');
   } catch (err) {
     console.error('Error saving submissions file:', err);
+  }
+}
+
+function appendToHumanReadableLog(sub: ParticipantSubmission) {
+  try {
+    ensureDataDir();
+    const driveOrErd = sub.erdLink || sub.presentationDeckUrl || 'None provided';
+    const logEntry = `
+======================================================================
+NEW SUBMISSION RECEIVED: ${sub.roundId.toUpperCase()}
+Timestamp: ${sub.submittedAt} (ID: ${sub.id})
+Organizer Delivery: azhanadeem999@gmail.com
+Team Name: ${sub.teamName}
+University: ${sub.university}
+Team Lead: ${sub.leadName} (${sub.leadEmail})
+Google Drive / ERD Link: ${driveOrErd}
+----------------------------------------------------------------------
+SQL / Code Payload:
+${sub.sqlCode || sub.updatedSchemaSql || 'No SQL code'}
+----------------------------------------------------------------------
+Notes / Documentation:
+${sub.notes || sub.normalizationNotes || sub.queryNotes || 'None'}
+======================================================================
+`;
+    fs.appendFileSync(SUBMISSIONS_LOG_FILE, logEntry, 'utf-8');
+  } catch (err) {
+    console.error('Error writing human-readable submission log:', err);
   }
 }
 
@@ -67,11 +95,12 @@ export function addSubmission(submission: Omit<ParticipantSubmission, 'id' | 'su
     id: `sub-${Date.now()}`,
     submittedAt: new Date().toISOString(),
     syncStatus: 'synced_to_sheets',
-    webhookId: `n8n-hook-${Math.floor(100000 + Math.random() * 900000)}`,
+    webhookId: `hook-${Math.floor(100000 + Math.random() * 900000)}`,
   };
 
   submissions.unshift(newSubmission);
   saveSubmissionsToFile(submissions);
+  appendToHumanReadableLog(newSubmission);
   return newSubmission;
 }
 

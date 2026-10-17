@@ -1,23 +1,30 @@
 import { NextResponse } from 'next/server';
 import { updateRoundPdf, getRounds } from '@/lib/storage';
 
+const JUDGE_PASSWORD = 'rudolph-insists-demanded-citation-convent-pairing-aztec';
+
 export async function GET() {
   return NextResponse.json({ rounds: getRounds() });
 }
 
 export async function POST(request: Request) {
   try {
-    const roleHeader = request.headers.get('x-user-role');
+    const authHeader = request.headers.get('x-judge-auth') || '';
     const body = await request.json();
-    const { roundId, filename, uploadedBy, url, size, role } = body;
+    const { roundId, filename, uploadedBy, url, size, password } = body;
 
-    const userRole = role || roleHeader;
+    const providedKey = password || authHeader;
 
-    if (userRole !== 'judge') {
+    // Check if the provided key matches or decodes to the judge password
+    const isAuthorized =
+      providedKey === JUDGE_PASSWORD ||
+      (providedKey && Buffer.from(providedKey, 'base64').toString('utf-8').includes(JUDGE_PASSWORD));
+
+    if (!isAuthorized) {
       return NextResponse.json(
         {
           success: false,
-          error: 'ACCESS DENIED: Only verified Judges are authorized to upload round PDF problem statements and rubrics.',
+          error: 'ACCESS DENIED: Valid Judge credentials are required to upload or update round PDFs.',
         },
         { status: 403 }
       );
@@ -43,7 +50,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: `Round ${updated.number} PDF successfully uploaded and published to participants.`,
+      message: `Round ${updated.number} PDF successfully published to participants.`,
       round: updated,
     });
   } catch (error: any) {

@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import { useRole } from './AuthProvider';
-import { ShieldCheck, User, Menu, X } from 'lucide-react';
+import { ShieldCheck, Lock, LogOut, Menu, X } from 'lucide-react';
 
 export default function Navbar() {
-  const { role, toggleRole, currentUser } = useRole();
+  const { role, isJudgeLoggedIn, logoutJudge, setIsLoginModalOpen, currentUser } = useRole();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -73,31 +73,33 @@ export default function Navbar() {
           </li>
         </ul>
 
-        {/* Action Controls & Persona Switcher */}
+        {/* Action Controls & Protected Judge Access */}
         <div className="flex items-center gap-3">
-          {/* Toggle Role (Participant vs Judge) */}
-          <button
-            onClick={toggleRole}
-            className={`inline-flex items-center gap-2 px-3 py-1.5 font-mono text-xs font-bold tracking-[0.14em] transition-all hud-cut-sm border ${
-              role === 'judge'
-                ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.3)]'
-                : 'bg-primary/20 text-primary border-primary/50 hover:bg-primary/30'
-            }`}
-            title="Toggle between Participant UX and Judge UX"
-          >
-            {role === 'judge' ? (
-              <>
+          {/* Judge Login / Status */}
+          {isJudgeLoggedIn ? (
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 font-mono text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.3)] hud-cut-sm">
                 <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />
-                <span>JUDGE UX</span>
-                <span className="hidden xl:inline text-[9px] opacity-75">(PDF Upload Active)</span>
-              </>
-            ) : (
-              <>
-                <User className="w-3.5 h-3.5 text-primary" />
-                <span>PARTICIPANT UX</span>
-              </>
-            )}
-          </button>
+                <span>JUDGE: AZHA NADEEM</span>
+              </span>
+              <button
+                onClick={logoutJudge}
+                className="p-1.5 border border-primary/30 hover:border-red-500 bg-card/60 text-muted-foreground hover:text-red-400 hud-cut-sm"
+                title="Logout Judge Mode"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setIsLoginModalOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 font-mono text-xs font-bold tracking-[0.14em] text-muted-foreground border border-primary/30 hover:border-amber-500/60 hover:text-amber-300 hover:bg-amber-500/10 transition-all hud-cut-sm"
+              title="Restricted Judge Login (Password Protected)"
+            >
+              <Lock className="w-3.5 h-3.5 text-primary" />
+              <span>JUDGE_LOGIN</span>
+            </button>
+          )}
 
           {/* Direct Google Form Registration Button */}
           <a
@@ -125,16 +127,32 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="lg:hidden border-b border-primary/30 bg-[#0d0707] px-4 py-4 space-y-3">
           <div className="flex items-center justify-between pb-2 border-b border-primary/20">
-            <span className="font-mono text-xs text-muted-foreground">CURRENT USER:</span>
+            <span className="font-mono text-xs text-muted-foreground">STATUS:</span>
             <span className="font-mono text-xs text-primary font-bold">{currentUser.name}</span>
           </div>
-          <div className="flex gap-2">
-            <button
-              onClick={toggleRole}
-              className="flex-1 py-2 font-mono text-xs font-bold text-center border border-primary/40 bg-primary/10 hud-cut-sm text-foreground"
-            >
-              SWITCH TO: {role === 'participant' ? 'JUDGE MODE' : 'PARTICIPANT MODE'}
-            </button>
+          <div>
+            {isJudgeLoggedIn ? (
+              <button
+                onClick={() => {
+                  logoutJudge();
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full py-2 font-mono text-xs font-bold text-center border border-red-500/40 bg-red-950/30 text-red-300 hud-cut-sm"
+              >
+                LOGOUT JUDGE MODE
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setIsLoginModalOpen(true);
+                  setMobileMenuOpen(false);
+                }}
+                className="w-full py-2 font-mono text-xs font-bold text-center border border-amber-500/40 bg-amber-950/30 text-amber-300 hud-cut-sm flex items-center justify-center gap-2"
+              >
+                <Lock className="w-3.5 h-3.5" />
+                ENTER AS JUDGE (PASSWORD REQUIRED)
+              </button>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-2 pt-2">
             <a

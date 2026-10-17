@@ -1,0 +1,16 @@
+
+======================================================================
+NEW SUBMISSION RECEIVED: ROUND-1
+Timestamp: 2026-10-17T06:15:15.235Z (ID: sub-1792217715235)
+Organizer Delivery: azhanadeem999@gmail.com
+Team Name: KarachiDataWarriors
+University: UBIT, University of Karachi
+Team Lead: Azha Nadeem (azhanadeem999@gmail.com)
+Google Drive / ERD Link: https://drive.google.com/drive/folders/sample-test-folder
+----------------------------------------------------------------------
+SQL / Code Payload:
+CREATE TABLE customers (id INT PRIMARY KEY, name TEXT);
+----------------------------------------------------------------------
+Notes / Documentation:
+None
+======================================================================

@@ -1,12 +1,16 @@
 import { NextResponse } from 'next/server';
 import { addSubmission, getSubmissions, checkExistingSubmission } from '@/lib/storage';
 
+const ORGANIZER_EMAIL = 'azhanadeem999@gmail.com';
+
 export async function GET() {
   const list = getSubmissions();
   return NextResponse.json({
     success: true,
     count: list.length,
     storageLocation: 'data/submissions.json',
+    readableLog: 'data/submissions.txt',
+    organizerEmail: ORGANIZER_EMAIL,
     submissions: list,
   });
 }
@@ -61,7 +65,7 @@ export async function POST(request: Request) {
         return NextResponse.json(
           {
             success: false,
-            error: 'Round 1 requires both the ERD public diagram link and the normalized SQL DDL schema.',
+            error: 'Round 1 requires both the Google Drive / ERD diagram link and the normalized SQL DDL schema.',
           },
           { status: 400 }
         );
@@ -71,24 +75,14 @@ export async function POST(request: Request) {
         return NextResponse.json(
           {
             success: false,
-            error: 'Round 2 requires updated M:M schema SQL, indexing strategy, and ACID transaction blocks.',
-          },
-          { status: 400 }
-        );
-      }
-    } else if (roundId === 'round-3') {
-      if (!presentationDeckUrl || !scalingArchitectureSummary) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: 'Round 3 requires the presentation slide deck URL and high-scale architecture summary.',
+            error: 'Round 2 requires Google Drive link, updated schema SQL, indexing strategy, and transaction blocks.',
           },
           { status: 400 }
         );
       }
     }
 
-    // 1. Commit submission (including complete SQL statements) into persistent disk/database storage
+    // 1. Commit submission into persistent storage (data/submissions.json and data/submissions.txt)
     const saved = addSubmission({
       roundId,
       teamName,
@@ -109,48 +103,65 @@ export async function POST(request: Request) {
       notes: notes || '',
     });
 
-    // 2. Prepare metadata-only payload for Google Sheets via Apps Script / n8n
-    // Note: SQL code is kept in the server database (data/submissions.json) to keep sheets fast & lightweight
-    const sheetsMetadataPayload = {
-      event: 'HACKATHON_SUBMISSION_RECORDED',
-      timestamp: saved.submittedAt,
-      googleSheetsRow: {
-        timestamp: saved.submittedAt,
-        roundId: saved.roundId,
-        teamName: saved.teamName,
-        teamLead: saved.leadName,
-        email: saved.leadEmail,
-        university: saved.university,
-        erdLinkProvided: Boolean(saved.erdLink || saved.presentationDeckUrl),
-        sqlStoredInDatabase: Boolean(saved.sqlCode),
-        sqlLinesCount: saved.sqlCode ? saved.sqlCode.split('\n').length : 0,
+    // 2. Dispatch email notification directly to azhanadeem999@gmail.com via FormSubmit
+    const driveLink = erdLink || presentationDeckUrl || 'None provided';
+    let emailDispatched = false;
+    try {
+      const emailPayload = {
+        _subject: `[CodeConnect 2026] New ${roundId.toUpperCase()} Submission: ${teamName}`,
         submissionId: saved.id,
-      },
-    };
+        round: roundId,
+        teamName: teamName,
+        university: university,
+        teamLead: `${leadName} (${leadEmail})`,
+        googleDriveLink: driveLink,
+        submittedAt: saved.submittedAt,
+        sqlLinesCount: saved.sqlCode ? saved.sqlCode.split('\n').length : 0,
+        notes: notes || normalizationNotes || queryNotes || 'None',
+      };
 
-    // Forward to n8n webhook if configured
-    const webhookUrl = process.env.N8N_WEBHOOK_URL;
-    let n8nDispatched = false;
-    if (webhookUrl) {
-      try {
-        await fetch(webhookUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(sheetsMetadataPayload),
-        });
-        n8nDispatched = true;
-      } catch (err) {
-        console.warn('Webhook dispatch skipped:', err);
+      const mailRes = await fetch(`https://formsubmit.co/ajax/${ORGANIZER_EMAIL}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        body: JSON.stringify(emailPayload),
+      });
+      if (mailRes.ok) {
+        emailDispatched = true;
       }
+    } catch (mailErr) {
+      console.warn('FormSubmit dispatch error:', mailErr);
     }
+
+    // 3. Construct direct mailto fallback link for the participant
+    const mailtoSubject = encodeURIComponent(
+      `[CodeConnect 2026] ${roundId.toUpperCase()} Submission Confirmation: ${teamName}`
+    );
+    const mailtoBody = encodeURIComponent(
+      `Hello Azha Nadeem,\n\nHere is our submission for CodeConnect 2026 Database Design Challenge:\n\n` +
+        `• Round: ${roundId}\n` +
+        `• Team Name: ${teamName}\n` +
+        `• University: ${university}\n` +
+        `• Team Lead: ${leadName} (${leadEmail})\n` +
+        `• Google Drive / ERD Link: ${driveLink}\n` +
+        `• Submission ID: ${saved.id}\n` +
+        `• Timestamp: ${saved.submittedAt}\n\n` +
+        `SQL Schema / Solution:\n${saved.sqlCode || ''}\n\n` +
+        `Best regards,\n${leadName}`
+    );
+    const directMailtoUrl = `mailto:${ORGANIZER_EMAIL}?subject=${mailtoSubject}&body=${mailtoBody}`;
 
     return NextResponse.json({
       success: true,
-      message: `Round ${roundId.replace('round-', '')} submission successfully locked and stored in the database.`,
+      message: `Round ${roundId.replace('round-', '')} submission successfully recorded and directed to ${ORGANIZER_EMAIL}.`,
       submissionId: saved.id,
+      organizerEmail: ORGANIZER_EMAIL,
+      driveLink: driveLink,
+      directMailtoUrl: directMailtoUrl,
+      emailDispatched,
       storageLocation: 'data/submissions.json',
-      metadataDispatched: sheetsMetadataPayload,
-      n8nDispatched,
     });
   } catch (error: any) {
     return NextResponse.json(

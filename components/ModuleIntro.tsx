@@ -4,7 +4,6 @@ import React from 'react';
 import {
   Database,
   TrendingUp,
-  Server,
   CheckCircle2,
   Flame,
   Briefcase,
@@ -18,49 +17,34 @@ import {
 export default function ModuleIntro() {
   const levels = [
     {
-      level: 'Beginner',
-      title: 'The Relational Genesis',
-      subtitle: 'Garage Days · 10 Customers · 5 Home Chefs',
+      level: 'Round 1 · Beginner to Core',
+      title: 'Initial Design Submission',
+      subtitle: 'PART A: THE GARAGE DAYS · 10 Customers · 5 Dishes · 1 Rider',
       topics: [
         'Entity-Relationship Diagrams (ERDs)',
-        'Normalization to 1NF, 2NF, 3NF',
-        'Clean CREATE TABLE statements',
-        'Primary keys & Foreign key integrity',
-        'Basic Cardinality (1:1 and 1:M)',
+        'Normalization to 2NF & 3NF',
+        'Cardinality: 1:1, 1:M, M:M Relations',
+        'SQL Basics: JOIN, GROUP BY, AVG, ORDER BY, LIMIT, HAVING, COUNT, WHERE',
+        'Core Primary Keys, Foreign Keys & Baseline Indexing',
       ],
       icon: Database,
-      tag: 'Round 1 · Online on Portal',
+      tag: 'Saturday, 17th Oct · 9 AM - 12 PM',
       color: 'border-primary/40',
     },
     {
-      level: 'Intermediate',
-      title: 'The Multi-City Expansion',
-      subtitle: 'Scaling to 5,000 Customers · 3 Cities · Riders & Reviews',
+      level: 'Round 2 · Intermediate to Advanced',
+      title: 'Optimization & Queries',
+      subtitle: 'PART B: THE EXPANSION & THE PLATFORM · 1M Users · 10x Ramadan Spike',
       topics: [
-        'Complex M:M & Self-referencing relationships',
-        'Normalization up to BCNF / 4NF',
-        'B-Tree & Composite Indexing strategies',
-        'Complex query joins, subqueries, aggregations',
-        'ACID Transactions & Stored Procedures',
+        'BCNF & 4NF Normalization, Subqueries & Views',
+        'ACID Transactions & Stored Procedures (Concurrency & Locking)',
+        'Query Optimization (EXPLAIN, rewrite slow queries)',
+        'Partitioning, Sharding & NoSQL vs SQL Decisions',
+        'Database Security, Star Schema (OLTP vs OLAP) & CAP Theorem',
       ],
       icon: TrendingUp,
-      tag: 'Round 2 · Online on Portal',
+      tag: 'Sunday, 18th Oct · 9 AM - 12 PM',
       color: 'border-accent/40',
-    },
-    {
-      level: 'Advanced',
-      title: 'The Hyper-Scale Platform',
-      subtitle: '1 Million Users · Ramadan Peak Load · System Defense',
-      topics: [
-        'Query optimization & execution plan analysis',
-        'Horizontal sharding & Range/Hash partitioning',
-        'NoSQL vs SQL architectural trade-offs',
-        'Caching layers (Redis) & Invalidation',
-        'Concurrency, Locking, CAP Theorem & Replication',
-      ],
-      icon: Server,
-      tag: 'Round 3 · On-Campus @ UBIT',
-      color: 'border-emerald-500/40',
     },
   ];
 
@@ -90,14 +74,14 @@ export default function ModuleIntro() {
       title: 'High-Scale Platform Architecture (Ramadan Rush)',
       subtitle: '1 Million Users & Zero-Downtime Peak Handling',
       icon: Cpu,
-      desc: 'Tackle the authentic Pakistani traffic surge: 10,000 concurrent orders/second during Ramadan Sehri/Iftar. You will architect Redis caching layers, horizontal table partitioning, read-replicas, and determine concrete trade-offs between SQL transactions and NoSQL scalability.',
+      desc: 'Tackle the authentic Pakistani traffic surge: 50,000 orders/day and 10x spikes during Ramadan Sehri/Iftar. You will architect Redis caching layers, horizontal table partitioning, read-replicas, and determine concrete trade-offs between SQL transactions and NoSQL scalability.',
       tags: ['Horizontal Sharding', 'Redis Caching', 'CAP Theorem & HA'],
     },
     {
-      title: 'Live Whiteboard Defense Before Senior Jury',
+      title: 'Live Whiteboard Defense & Pitch',
       subtitle: 'Professional Communication & Engineering Defense',
       icon: Layers,
-      desc: 'On Day 3 at UBIT, finalists pitch their architecture live on stage. Defending your schema choices, handling unexpected stress tests, and answering jury edge cases sharpens your critical thinking and executive presentation skills.',
+      desc: 'Defending your schema choices, handling unexpected stress tests, and answering jury edge cases sharpens your critical thinking and executive presentation skills.',
       tags: ['Live Pitching', 'Architecture Defense', 'Whiteboard Modeling'],
     },
     {
@@ -116,20 +100,20 @@ export default function ModuleIntro() {
         <div className="max-w-3xl">
           <div className="flex items-center gap-2 font-mono text-xs tracking-[0.2em] text-primary uppercase">
             <span className="h-1.5 w-1.5 rounded-full bg-primary pulse-dot" />
-            MODULE BRIEFING // TRACK 01
+            MODULE BRIEFING // COMPETITION RULES &amp; SCHEDULE
           </div>
           <h2 className="mt-3 font-display text-3xl font-bold tracking-tight uppercase sm:text-5xl">
-            Introduction of the Module
+            Database Design Module
           </h2>
           <p className="mt-4 text-base leading-relaxed text-muted-foreground sm:text-lg">
             Welcome to <span className="text-foreground font-semibold">&ldquo;You Hungry? — A Karachi Startup Story&rdquo;</span>.
-            Instead of abstract textbook puzzles, you are the founding database engineer for a homegrown food delivery startup.
-            Across three escalating stages of business hypergrowth, your schema must survive, scale, and thrive.
+            Follow the startup as it grows from a 10-customer home-kitchen garage into a 1,000,000 user platform facing 10x Ramadan rushes.
+            Two intensive 3-hour rounds online on the portal!
           </p>
         </div>
 
-        {/* 3 Skill Level Pillars */}
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+        {/* 2 Round Structure Grid */}
+        <div className="mt-14 grid gap-6 md:grid-cols-2">
           {levels.map((item, idx) => {
             const Icon = item.icon;
             return (
@@ -143,9 +127,9 @@ export default function ModuleIntro() {
                 <div>
                   <div className="flex items-center justify-between pb-4 border-b border-primary/20">
                     <span className="font-mono text-xs font-bold tracking-widest text-primary uppercase">
-                      LEVEL 0{idx + 1} // {item.level}
+                      {item.level}
                     </span>
-                    <span className="border border-primary/30 px-2 py-0.5 font-mono text-[10px] text-muted-foreground bg-primary/10 hud-cut-sm">
+                    <span className="border border-primary/30 px-2 py-0.5 font-mono text-[10px] text-accent bg-primary/10 hud-cut-sm">
                       {item.tag}
                     </span>
                   </div>
@@ -173,8 +157,8 @@ export default function ModuleIntro() {
                 </div>
 
                 <div className="mt-8 border-t border-primary/20 pt-4 font-mono text-[10px] text-muted-foreground flex items-center justify-between">
-                  <span>SCALE_PHASE // STAGE_0{idx + 1}</span>
-                  <span className="text-primary font-bold">READY</span>
+                  <span>TOTAL WORKING TIME: 3 HOURS</span>
+                  <span className="text-primary font-bold">ONLINE ON PORTAL</span>
                 </div>
               </div>
             );

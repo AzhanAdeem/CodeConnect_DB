@@ -6,28 +6,29 @@ const CODE_SNIPPETS = [
   {
     filename: 'schema_r1_garage.sql',
     lines: [
-      { num: 1, text: '-- Round 1: Karachi Food Delivery Genesis' },
+      { num: 1, text: '-- Round 1: Karachi Food Delivery Genesis (PART A)' },
       { num: 2, text: 'CREATE TABLE orders (' },
       { num: 3, text: '  order_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),' },
       { num: 4, text: '  customer_id INT REFERENCES customers(id),' },
-      { num: 5, text: '  restaurant_id INT REFERENCES restaurants(id),' },
-      { num: 6, text: '  status VARCHAR(20) CHECK (status IN (\'PREP\', \'ON_BIKE\', \'DELIVERED\')),' },
-      { num: 7, text: '  created_at TIMESTAMPTZ DEFAULT NOW()' },
-      { num: 8, text: ');' },
-      { num: 9, text: 'CREATE INDEX idx_orders_customer ON orders(customer_id);' },
+      { num: 5, text: '  dish_id INT REFERENCES dishes(id),' },
+      { num: 6, text: '  rider_id INT REFERENCES riders(id),' },
+      { num: 7, text: '  status VARCHAR(20) CHECK (status IN (\'PREP\', \'ON_BIKE\', \'DELIVERED\')),' },
+      { num: 8, text: '  created_at TIMESTAMPTZ DEFAULT NOW()' },
+      { num: 9, text: ');' },
+      { num: 10, text: 'CREATE INDEX idx_orders_customer ON orders(customer_id);' },
     ],
   },
   {
-    filename: 'scaling_r3_sharding.ts',
+    filename: 'scaling_r2_optimization.ts',
     lines: [
-      { num: 1, text: '// Round 3: Ramadan Spike Load Routing (1M Users)' },
+      { num: 1, text: '// Round 2: The Expansion & Platform Scaling (1M Users)' },
       { num: 2, text: 'export async function routeOrderShard(userId: string) {' },
       { num: 3, text: '  const shardKey = hashMurmur3(userId) % TOTAL_SHARDS;' },
       { num: 4, text: '  const cachedMenu = await redis.get(`menu:ramadan:karachi`);' },
       { num: 5, text: '  if (!cachedMenu) await warmCacheFromReplica();' },
       { num: 6, text: '  return executeAcidTx(shardPool[shardKey], {' },
       { num: 7, text: '    isolation: "REPEATABLE_READ",' },
-      { num: 8, text: '    timeoutMs: 250 // Zero choke during Iftar rush' },
+      { num: 8, text: '    timeoutMs: 250 // Zero choke during Ramadan Iftar rush' },
       { num: 9, text: '  });' },
       { num: 10, text: '}' },
     ],
@@ -104,7 +105,7 @@ export default function TerminalHUD() {
           <span>STORAGE_ENGINE: POSTGRES + REDIS</span>
         </span>
         <span className="text-primary tracking-widest">
-          SYNC: AUTO // GOOGLE_APPS_SCRIPT
+          ORGANIZER: azhanadeem999@gmail.com
         </span>
       </div>
     </div>
